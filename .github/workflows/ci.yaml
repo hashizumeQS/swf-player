@@ -5,16 +5,18 @@ on:
     branches: [main]
   pull_request:
 
+# workspace解決にはexample（Flutter依存）も含まれるため、全ジョブで
+# Flutter SDKを使う（dartコマンドはFlutter同梱のものを使用）。
+# swf_coreのPure Dart性はswf_core/pubspec.yamlの依存で担保される。
 jobs:
   swf_core:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: dart-lang/setup-dart@v1
+      - uses: subosito/flutter-action@v2
         with:
-          sdk: stable
-      - run: dart pub get
-        working-directory: packages/swf_core
+          channel: stable
+      - run: flutter pub get
       - run: dart format --output=none --set-exit-if-changed .
         working-directory: packages/swf_core
       - run: dart analyze --fatal-infos
@@ -30,7 +32,6 @@ jobs:
         with:
           channel: stable
       - run: flutter pub get
-        working-directory: packages/swf_player
       - run: flutter analyze
         working-directory: packages/swf_player
       - run: flutter test
