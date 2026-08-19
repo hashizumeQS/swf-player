@@ -15,6 +15,12 @@ class EditTextRenderer {
     return text.initialText ?? '';
   }
 
+  /// [text]の表示テキスト（[resolveText]参照）をFlutterのデバイスフォントで
+  /// 近似描画する。[owner]は変数バインディング解決用のスコープ（ボタン内配置
+  /// 等でスコープを持たない場合はnull可）。フォントサイズ・レイアウト幅・
+  /// 描画位置は全て[text.bounds]と同じtwips単位で扱い、canvasは呼び出し側で
+  /// 既にtwips座標系へスケール済みであることを前提とする。[text.bounds]で
+  /// クリップしてから描画する。テキストが空文字なら何もしない。
   static void paint(
     Canvas canvas,
     EditTextCharacter text,

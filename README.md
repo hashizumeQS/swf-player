@@ -1,5 +1,9 @@
 # swf_player
 
+[![CI](https://github.com/hashizumeQS/swf-player/actions/workflows/ci.yaml/badge.svg)](https://github.com/hashizumeQS/swf-player/actions/workflows/ci.yaml)
+[![swf_core](https://img.shields.io/pub/v/swf_core.svg?label=swf_core)](https://pub.dev/packages/swf_core)
+[![swf_player](https://img.shields.io/pub/v/swf_player.svg?label=swf_player)](https://pub.dev/packages/swf_player)
+
 Play SWF4 / **Flash Lite 1.x** content (Japanese feature-phone era games
 and animations) in Dart and Flutter.
 

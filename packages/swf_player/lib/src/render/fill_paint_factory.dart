@@ -76,6 +76,8 @@ ui.Paint paintForFill(FillStyle style, SwfCxform cxform) {
   return paint;
 }
 
+/// 線スタイル → Paint（strokeWidthは[LineStyle.widthTwips]をそのままtwips
+/// 単位で設定、canvas側がスケール済みのため変換不要）。
 ui.Paint paintForLine(LineStyle style, SwfCxform cxform) {
   return ui.Paint()
     ..isAntiAlias = true

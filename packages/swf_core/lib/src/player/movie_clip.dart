@@ -19,13 +19,32 @@ class PlacedObject {
     this.clip,
   });
 
+  /// 表示リスト上の深度（Z順のキー。値が大きいほど手前）。
   final int depth;
+
+  /// この深度に配置されているキャラクタ。同depthへの差し替えで更新される。
   Character character;
+
+  /// このオブジェクト単独の変換行列（twips単位、親からの累積は含まない）。
   SwfMatrix matrix;
+
+  /// このオブジェクト単独の色変換（親からの累積は含まない）。
   SwfCxform cxform;
+
+  /// インスタンス名（スラッシュ構文・ActionScriptからの参照に使う）。
+  /// 未設定はnull。
   String? name;
+
+  /// マスクとしてのクリップ深度上限。nullなら通常オブジェクト
+  /// （意味は[RenderNode.clipDepth]と同じ）。
   int? clipDepth;
+
+  /// モーフシェイプの補間比率（0-65535、未指定はnull）。
   int? ratio;
+
+  /// 表示状態（ActionScriptの`_visible`に対応）。falseの間は描画対象にも
+  /// フォーカスナビゲーション対象にもならないが、フレーム進行・
+  /// アクション実行は継続する。
   bool visible = true;
 
   /// ActionScriptで行列(_x/_y/_xscale/_yscale/_rotation)を変更済み。
@@ -48,6 +67,10 @@ class PlacedObject {
 
 /// タイムラインを持つムービークリップ（ルートまたはスプライトインスタンス）。
 class MovieClip {
+  /// [timeline]の frame1 を即座に適用してムービークリップを生成する
+  /// （タイムラインが空でなければframe1のアクションをpending状態にする）。
+  /// [holdFirstFrame]がtrueの場合、次の[enterFrame]呼び出しでは
+  /// 進行させずframe1を維持する（フレーム途中で配置されたクリップ用）。
   MovieClip(this.timeline, this.dictionary,
       {this.name = '',
       this.parent,
@@ -65,9 +88,16 @@ class MovieClip {
   /// （配置直後の親のenterFrame走査で1コマ進んでしまうのを防ぐ）
   bool _holdFrame;
 
+  /// このクリップのタイムライン定義（フレームops・アクション・ラベル）。
   final Timeline timeline;
+
+  /// characterId→Characterの辞書。配置・差し替え時のキャラクタ解決に使う。
   final Map<int, Character> dictionary;
+
+  /// 親クリップ（rootの場合はnull）。
   final MovieClip? parent;
+
+  /// インスタンス名（スラッシュ構文でのパス解決に使う）。rootは既定で空文字。
   String name;
 
   /// このクリップを表示リストに配置しているオブジェクト（rootはnull）。
@@ -78,6 +108,8 @@ class MovieClip {
   int get currentFrame => _frameIndex + 1;
   int _frameIndex = 0;
 
+  /// 再生ヘッドが自動進行するか。falseなら[enterFrame]は現在フレームを
+  /// 維持する（子クリップの進行は止めない）。
   bool isPlaying = true;
 
   /// カレントフレームのDoActionが未実行であることを示す（Stageが消化）。
@@ -100,8 +132,12 @@ class MovieClip {
   /// Flash4変数スコープ（内部キーは小文字正規化。Flash4は大小文字非区別）。
   final Map<String, FlashValue> _variables = {};
 
+  /// このクリップのFlash4変数を取得する（[name]は大小文字非区別）。
+  /// 未設定ならnull。
   FlashValue? getVariable(String name) => _variables[name.toLowerCase()];
 
+  /// このクリップのFlash4変数を設定する（[name]は大小文字非区別で
+  /// 小文字正規化して保持）。
   void setVariable(String name, FlashValue value) {
     _variables[name.toLowerCase()] = value;
   }
@@ -109,10 +145,14 @@ class MovieClip {
   /// デバッグ・テスト用の変数ビュー（キーは小文字正規化済み）。
   Map<String, FlashValue> get variables => _variables;
 
+  /// このクリップの表示リスト。キーは深度、値は昇順（深度昇順＝描画の背面から前面）
+  /// で走査できる。
   final SplayTreeMap<int, PlacedObject> displayList = SplayTreeMap();
 
+  /// このクリップのタイムラインの総フレーム数。
   int get totalFrames => timeline.frameCount;
 
+  /// [parent]を辿った最上位のクリップ（ルート）。
   MovieClip get root => parent?.root ?? this;
 
   /// カレントフレームのDoActionバイト列（タグ出現順）。
@@ -147,7 +187,11 @@ class MovieClip {
     }
   }
 
+  /// 再生ヘッドの自動進行を再開する（[isPlaying]をtrueにする）。
   void play() => isPlaying = true;
+
+  /// 再生ヘッドの自動進行を止める（[isPlaying]をfalseにする）。
+  /// 子クリップの進行には影響しない。
   void stop() => isPlaying = false;
 
   /// 指定フレーム（1-based）へ移動。後方なら表示リストを巻き戻して再構築。
@@ -167,6 +211,8 @@ class MovieClip {
     labelEventPending = true;
   }
 
+  /// [label]が指すフレームへ移動する（内部で[gotoFrame]に委譲、大小文字
+  /// 非区別）。ラベルが存在しなければ何もせずfalseを返す。
   bool gotoLabel(String label) {
     final index = _labelIndex(label);
     if (index == null) return false;

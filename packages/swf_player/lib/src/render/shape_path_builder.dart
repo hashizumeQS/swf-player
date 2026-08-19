@@ -6,7 +6,12 @@ import 'package:swf_core/swf_core.dart';
 class ShapeRenderData {
   const ShapeRenderData(this.fills, this.lines);
 
+  /// 塗りスタイルと、それに対応する閉輪郭を結合したtwips座標のPathの組。
+  /// 定義順＝描画順（後の要素が上に重なる）。
   final List<(FillStyle, ui.Path)> fills;
+
+  /// 線スタイルと、それに対応するポリラインを結合したtwips座標のPathの組。
+  /// 定義順＝描画順。
   final List<(LineStyle, ui.Path)> lines;
 }
 
@@ -38,6 +43,8 @@ class ShapePathBuilder {
     });
   }
 
+  /// [character]の塗り・線をtwips座標のPathへ変換する（characterIdでキャッシュ、
+  /// 同じcharacterに対する2回目以降の呼び出しは再構成しない）。
   ShapeRenderData forShape(ShapeCharacter character) {
     return _cache.putIfAbsent(character.id, () {
       final contours = buildShapeContours(character.shape);

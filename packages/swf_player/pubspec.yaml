@@ -2,9 +2,15 @@ name: swf_player
 description: >-
   Flutter widgets for playing SWF4 / Flash Lite 1.x content: stage renderer,
   player controller, and a feature-phone style virtual keypad.
-version: 0.1.0
+version: 0.1.1
 repository: https://github.com/hashizumeQS/swf-player
 issue_tracker: https://github.com/hashizumeQS/swf-player/issues
+topics:
+  - swf
+  - flash
+  - flash-lite
+  - player
+  - retro-gaming
 
 resolution: workspace
 

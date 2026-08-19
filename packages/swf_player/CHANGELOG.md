@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.1
+
+- Documentation: expanded README (screenshot, input/advanced-hooks guides,
+  Japanese summary), added pub.dev topics, and filled in member-level API
+  docs for the rendering layer.
+
 ## 0.1.0
 
 - Initial release.

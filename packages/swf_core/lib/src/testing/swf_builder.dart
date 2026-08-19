@@ -11,6 +11,8 @@ const int _twipsPerPixel = 20;
 /// [SwfParser]が読める最小限の形式でタグを組み立てる。実SWF（著作物）に
 /// 依存するテストを、このビルダーが生成する合成SWFへ置き換えるための基盤。
 class SwfBuilder {
+  /// [version]・ステージサイズ（[widthPx] x [heightPx]）・[frameRate]を指定して
+  /// ビルダーを生成する。既定値はテストで一般的に使う最小構成。
   SwfBuilder({
     this.version = 4,
     this.widthPx = 240,
@@ -25,9 +27,17 @@ class SwfBuilder {
         heightPx = 0,
         frameRate = 12;
 
+  /// SWFファイルバージョン（ヘッダの版数バイトに書き込まれる）。
+  /// [buildCompressed]はこれが6未満の場合に組み立てを拒否する。
   final int version;
+
+  /// ステージ幅（px単位）。[build]でtwipsへ換算しヘッダのRECT（フレームサイズ）に書き込む。
   final int widthPx;
+
+  /// ステージ高さ（px単位）。[build]でtwipsへ換算しヘッダのRECT（フレームサイズ）に書き込む。
   final int heightPx;
+
+  /// フレームレート（fps）。[build]で8.8固定小数点（値×256をUI16化）としてヘッダに書き込む。
   final double frameRate;
 
   final List<int> _tagBytes = [];
@@ -35,6 +45,8 @@ class SwfBuilder {
 
   static const List<int> _endTagBytes = [0, 0];
 
+  /// SetBackgroundColor(タグ9)。背景色を[r]・[g]・[b]（各0-255）の順にUI8 3byteとして
+  /// タグボディへそのまま書き込む。
   void setBackgroundColor(int r, int g, int b) {
     _writeTag(TagCode.setBackgroundColor, [r, g, b]);
   }
@@ -97,6 +109,16 @@ class SwfBuilder {
     _writeTag(TagCode.defineShape, bw.toBytes());
   }
 
+  /// PlaceObject2(タグ26)。指定[depth]にキャラクターを配置または既存インスタンスを更新する。
+  ///
+  /// [characterId]を渡すとPlaceFlagHasCharacter(0x02)を立てUI16のcharacterIdを書き込み、
+  /// キャラクターを新規配置する。[characterId]を省略した場合はPlaceFlagMove(0x01)を立て、
+  /// 同depthの既存インスタンスを移動する呼び出しとして扱う。
+  /// [translateXPx]・[translateYPx]のいずれかを渡すとPlaceFlagHasMatrix(0x04)を立て、
+  /// px→twips換算した平行移動のみの行列（拡大縮小・回転なし）を書き込む。
+  /// [name]を渡すとPlaceFlagHasName(0x20)を立て、SJISのnull終端文字列としてインスタンス名を
+  /// 書き込む。ボディの並びはflags(UI8) → depth(UI16) → [characterId(UI16)] →
+  /// [行列] → [name(STRING)]。
   void placeObject2({
     required int depth,
     int? characterId,
@@ -131,6 +153,8 @@ class SwfBuilder {
     _writeTag(TagCode.placeObject2, bw.toBytes());
   }
 
+  /// RemoveObject2(タグ28)。指定[depth]に配置中のインスタンスを取り除く。
+  /// ボディはDepth(UI16)のみ。
   void removeObject2({required int depth}) {
     final bw = BitWriter();
     bw.writeUI16(depth);
@@ -179,16 +203,22 @@ class SwfBuilder {
     _writeTag(TagCode.defineButton2, Uint8List.fromList(body));
   }
 
+  /// DoAction(タグ12)。[bytecode]（[Asm]等で組み立てたActionRecord列。末尾にオペコード
+  /// 0x00の終端バイトを含む想定）をそのままタグボディとして書き込む。
   void doAction(Uint8List bytecode) {
     _writeTag(TagCode.doAction, bytecode);
   }
 
+  /// FrameLabel(タグ43)。現在フレームに付ける[label]をSJISのnull終端文字列としてボディに
+  /// 書き込む。
   void frameLabel(String label) {
     final bw = BitWriter();
     _writeSjisString(bw, label);
     _writeTag(TagCode.frameLabel, bw.toBytes());
   }
 
+  /// ShowFrame(タグ1)。ボディなし（0byte）のタグを書き込み現在のフレームを確定させ、
+  /// 内部フレームカウントを1つ進める。
   void showFrame() {
     _frameCount++;
     _writeTag(TagCode.showFrame, const []);

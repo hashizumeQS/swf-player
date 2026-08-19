@@ -14,6 +14,9 @@ const _twipsPerPixel = 20.0;
 /// SwfStageの現在状態を描画するCustomPainter。
 /// repaint通知はListenable（PlayerControllerのnotifier）経由。
 class StagePainter extends CustomPainter {
+  /// [stage]の現在フレームを描画するpainterを構築する。
+  /// [repaint]（PlayerControllerのnotifier等）が通知するたびCustomPaintが
+  /// 再描画する。
   StagePainter({
     required this.stage,
     required this.pathBuilder,
@@ -23,8 +26,15 @@ class StagePainter extends CustomPainter {
     super.repaint,
   });
 
+  /// 描画対象のステージ状態（表示リスト・変数値等の現在フレームのスナップ
+  /// ショット）。
   final SwfStage stage;
+
+  /// ShapeCharacter/フォントグリフ → Path変換のキャッシュ。
   final ShapePathBuilder pathBuilder;
+
+  /// BitmapFill・ビットマップキャラクタ描画用にデコード済み画像を提供する
+  /// レジストリ。
   final BitmapRegistry bitmaps;
 
   /// 描画から除外するcharacterId（ホスト側で不要になった旧UI等）。
@@ -33,6 +43,10 @@ class StagePainter extends CustomPainter {
   /// characterId → 表示位置の上書き（px単位）。レイアウト調整用。
   final Map<int, ({double x, double y})> overridePositionsPx;
 
+  /// ステージ背景を塗った上で表示リストを再帰描画する。
+  /// [size]はpx単位のCanvasサイズで、stage幅（twips）から求めたスケール率を
+  /// canvasへ適用することでtwips座標系のまま子ノードを描画できるようにする
+  /// （以降の描画呼び出しの座標は全てtwips）。
   @override
   void paint(Canvas canvas, Size size) {
     final stageWidthTwips = stage.movie.stageRect.widthTwips.toDouble();
@@ -271,6 +285,9 @@ class StagePainter extends CustomPainter {
     );
   }
 
+  /// [stage]インスタンスが変わった時のみ再描画する
+  /// （同一インスタンスのミューテーションでは再描画されない。フレーム更新は
+  /// 新しい[SwfStage]インスタンスを都度渡すか、[repaint]の通知で駆動する）。
   @override
   bool shouldRepaint(StagePainter oldDelegate) => oldDelegate.stage != stage;
 }

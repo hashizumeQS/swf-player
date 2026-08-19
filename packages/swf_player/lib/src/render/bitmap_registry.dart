@@ -10,6 +10,11 @@ import 'package:swf_core/swf_core.dart';
 class BitmapRegistry {
   final Map<int, ui.Image> _images = {};
 
+  /// [movie]の辞書内にある全ビットマップキャラクタをデコードし、
+  /// `ui.Image`としてキャッシュする。描画前に一度だけawaitすること。
+  /// フォーマットが[BitmapFormat.jpeg3]ならJPEG本体をデコードしzlib圧縮
+  /// アルファ面を合成し、それ以外（lossless1/lossless2）はzlib展開の
+  /// 可逆ビットマップとしてデコードする。
   Future<void> prime(SwfMovie movie) async {
     for (final c in movie.dictionary.values.whereType<BitmapCharacter>()) {
       if (c.format == BitmapFormat.jpeg3) {
@@ -21,8 +26,12 @@ class BitmapRegistry {
     }
   }
 
+  /// characterId（[id]）に対応するデコード済み画像を返す。
+  /// [prime]未実行、または該当IDのビットマップキャラクタが存在しない場合は
+  /// null。
   ui.Image? imageFor(int id) => _images[id];
 
+  /// キャッシュ済みの全`ui.Image`を解放し、キャッシュを空にする。
   void dispose() {
     for (final img in _images.values) {
       img.dispose();

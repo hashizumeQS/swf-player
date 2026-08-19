@@ -19,10 +19,21 @@ class RenderNode {
     this.children = const [],
   });
 
+  /// 描画対象のキャラクタ（シェイプ・スプライト・ボタン・テキスト等）。
   final Character character;
+
+  /// このノード単独の変換行列（twips単位、親からの累積は含まない）。
   final SwfMatrix matrix;
+
+  /// このノード単独の色変換（親からの累積は含まない）。
   final SwfCxform cxform;
+
+  /// 描画順に使う深度値（昇順で手前に描画）。
   final int depth;
+
+  /// マスクとしてのクリップ深度上限。nullなら通常ノード。
+  /// 非nullの場合、このノード自身は描画されず、depthより大きく
+  /// clipDepth以下の兄弟ノードをクリップするマスクとして扱われる。
   final int? clipDepth;
 
   /// characterがSpriteCharacterの場合の対応クリップ。
@@ -37,6 +48,9 @@ class RenderNode {
 
 /// ステージ: ルートタイムライン・VM・フレーム進行の入口。
 class SwfStage {
+  /// [movie]からルートタイムライン（`_root`）を構築し、VMを初期化した上で
+  /// frame1のDoActionまで実行済みの状態でステージを生成する。
+  /// [host]省略時は[DefaultSwfHost]を使う。
   SwfStage(this.movie, {SwfHost? host})
       : host = host ?? DefaultSwfHost(),
         root = MovieClip(movie.mainTimeline, movie.dictionary, name: '_root') {
@@ -44,9 +58,16 @@ class SwfStage {
     _runPendingActions(); // frame1のDoAction
   }
 
+  /// パース済みSWFムービー（ステージ矩形・辞書・メインタイムライン等）。
   final SwfMovie movie;
+
+  /// VMからホスト環境への出口（通信・端末機能・時刻・乱数）。
   final SwfHost host;
+
+  /// ルートのムービークリップ（`_root`）。
   final MovieClip root;
+
+  /// ActionScriptバイトコードの実行エンジン。
   late final ActionInterpreter interpreter;
 
   /// ルートタイムラインのラベル到達通知（特定ラベル到達の検知に使う）。

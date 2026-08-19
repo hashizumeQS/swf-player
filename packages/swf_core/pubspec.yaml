@@ -2,9 +2,15 @@ name: swf_core
 description: >-
   Pure-Dart SWF4 / Flash Lite 1.x parser, player model, and ActionScript
   interpreter. Headless core for the swf_player Flutter package.
-version: 0.1.0
+version: 0.1.1
 repository: https://github.com/hashizumeQS/swf-player
 issue_tracker: https://github.com/hashizumeQS/swf-player/issues
+topics:
+  - swf
+  - flash
+  - flash-lite
+  - parser
+  - interpreter
 
 resolution: workspace
 

@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.1
+
+- Documentation: expanded README (supported tag/opcode tables, synthetic
+  SWF builder guide, known limitations, Japanese summary), added pub.dev
+  topics, and filled in member-level API docs across the data model,
+  player, and testing libraries.
+
 ## 0.1.0
 
 - Initial release.

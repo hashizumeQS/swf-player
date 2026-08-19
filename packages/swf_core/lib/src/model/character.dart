@@ -8,6 +8,8 @@ import 'timeline.dart';
 /// SWF辞書に登録されるキャラクタ（DefineXxxタグの成果物）。
 sealed class Character {
   const Character(this.id);
+
+  /// SWF辞書内でこのキャラクタを一意に識別するID（characterId）。
   final int id;
 }
 
@@ -37,6 +39,7 @@ class SpriteCharacter extends Character {
 class BitmapCharacter extends Character {
   const BitmapCharacter(super.id, this.format, this.data);
 
+  /// このビットマップの格納形式。
   final BitmapFormat format;
 
   /// タグ本体のうちcharacterId以降の生バイト列。
@@ -80,14 +83,26 @@ class EditTextCharacter extends Character {
 
   /// 使用フォントのキャラクタID。nullの場合は端末のデバイスフォントを使う。
   final int? fontId;
+
+  /// フォントサイズ（twips）。フォント未指定時は12pt相当（240twips）。
   final int fontHeightTwips;
+
+  /// テキストの色。nullの場合はタグに色指定がなく、レンダラー側の既定色を使う。
   final RgbaColor? textColor;
 
   /// 0=left, 1=right, 2=center, 3=justify
   final int align;
+
+  /// 左マージン（twips）。レイアウト情報が無いタグでは0。
   final int leftMarginTwips;
+
+  /// 右マージン（twips）。レイアウト情報が無いタグでは0。
   final int rightMarginTwips;
+
+  /// trueなら背景・枠線付きで描画する。
   final bool hasBorder;
+
+  /// trueなら複数行入力・折り返しを許可する。
   final bool isMultiline;
 
   /// trueならフォントのアウトライン（埋め込みグリフ）を使用、falseならデバイスフォント任せ。
@@ -128,6 +143,7 @@ class FontCharacter extends Character {
   /// EM square(1024)単位のグリフ送り幅。レイアウト情報が無い場合は空。
   final List<int> advances;
 
+  /// このフォントが1つ以上のグリフを持つかどうか。
   bool get hasGlyphs => glyphs.isNotEmpty;
 }
 
@@ -191,5 +207,7 @@ class GlyphEntry {
 /// 解釈対象外のタグ（情報保持のみ）。
 class UnknownCharacter extends Character {
   const UnknownCharacter(super.id, this.tagCode);
+
+  /// 解釈しなかった元タグのタグコード。
   final int tagCode;
 }

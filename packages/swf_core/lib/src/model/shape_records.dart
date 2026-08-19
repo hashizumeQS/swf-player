@@ -11,6 +11,8 @@ sealed class FillStyle {
 /// 単色塗り。
 class SolidFill extends FillStyle {
   const SolidFill(this.color);
+
+  /// 塗りの色。
   final RgbaColor color;
 }
 
@@ -38,6 +40,8 @@ class GradientStop {
 
   /// グラデーション上の位置（0〜255）。
   final int ratio; // 0-255
+
+  /// この停止点の色。
   final RgbaColor color;
 }
 
@@ -66,7 +70,11 @@ class BitmapFill extends FillStyle {
 /// 線（ストローク）スタイル。
 class LineStyle {
   const LineStyle(this.widthTwips, this.color);
+
+  /// 線幅（twips）。
   final int widthTwips;
+
+  /// 線の色。
   final RgbaColor color;
 }
 
@@ -104,7 +112,11 @@ class StyleChangeRecord extends ShapeRecord {
 /// 直線エッジ（カレントポイントからの相対移動）。
 class StraightEdgeRecord extends ShapeRecord {
   const StraightEdgeRecord(this.deltaX, this.deltaY);
+
+  /// カレントポイントからのX方向相対移動（twips）。
   final int deltaX;
+
+  /// カレントポイントからのY方向相対移動（twips）。
   final int deltaY;
 }
 
@@ -115,9 +127,17 @@ class StraightEdgeRecord extends ShapeRecord {
 class CurvedEdgeRecord extends ShapeRecord {
   const CurvedEdgeRecord(this.controlDeltaX, this.controlDeltaY,
       this.anchorDeltaX, this.anchorDeltaY);
+
+  /// カレントポイントから制御点までのX方向相対移動（twips）。
   final int controlDeltaX;
+
+  /// カレントポイントから制御点までのY方向相対移動（twips）。
   final int controlDeltaY;
+
+  /// 制御点から終点（アンカー）までのX方向相対移動（twips）。
   final int anchorDeltaX;
+
+  /// 制御点から終点（アンカー）までのY方向相対移動（twips）。
   final int anchorDeltaY;
 }
 
@@ -129,14 +149,24 @@ class ShapeWithStyle {
     required this.records,
   });
 
+  /// 塗りスタイル配列（0-based）。StyleChangeRecordのfillStyle0/1は
+  /// 1-based indexでこの配列を参照する（0=塗りなし）。
   final List<FillStyle> fillStyles;
+
+  /// 線スタイル配列（0-based）。StyleChangeRecordのlineStyleは
+  /// 1-based indexでこの配列を参照する（0=線なし）。
   final List<LineStyle> lineStyles;
+
+  /// 描画順のシェイプレコード列。
   final List<ShapeRecord> records;
 }
 
 /// DefineFont2のグリフ用SHAPE（スタイル配列なし、fill 0/1のみ）。
 class GlyphShape {
   const GlyphShape(this.records);
+
+  /// グリフの輪郭を構成するシェイプレコード列（スタイル配列は持たず、
+  /// fill 0/1のみを使用する）。
   final List<ShapeRecord> records;
 }
 
@@ -153,13 +183,28 @@ class ButtonRecord {
     required this.cxform,
   });
 
+  /// trueなら「UP」状態でこのキャラクタを表示する。
   final bool stateUp;
+
+  /// trueなら「OVER（ロールオーバー）」状態でこのキャラクタを表示する。
   final bool stateOver;
+
+  /// trueなら「DOWN（押下）」状態でこのキャラクタを表示する。
   final bool stateDown;
+
+  /// trueならヒットテスト（当たり判定）の形状としてこのキャラクタを使う。
   final bool stateHitTest;
+
+  /// 配置するキャラクタのID。
   final int characterId;
+
+  /// 表示リストにおける深度（重なり順）。
   final int depth;
+
+  /// このキャラクタに適用する変換行列。
   final SwfMatrix matrix;
+
+  /// このキャラクタに適用するカラー変換。
   final SwfCxform cxform;
 }
 
@@ -185,5 +230,6 @@ class ButtonCondAction {
   /// 「ロールオーバー」遷移。
   final bool idleToOverUp;
 
+  /// この条件を満たしたときに実行するDoActionバイトコード列。
   final Uint8List actions;
 }
