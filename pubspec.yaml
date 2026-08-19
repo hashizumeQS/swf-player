@@ -1,0 +1,11 @@
+name: swf_player_workspace
+description: Workspace for the swf_core and swf_player packages.
+publish_to: none
+
+environment:
+  sdk: ^3.6.0
+
+workspace:
+  - packages/swf_core
+  - packages/swf_player
+  - packages/swf_player/example
