@@ -173,16 +173,21 @@ class _SwfPlayerViewState extends State<SwfPlayerView>
                       details.localPosition.dy / scale,
                     )
                 : null,
-            child: CustomPaint(
-              painter: StagePainter(
-                stage: stage,
-                pathBuilder: _pathBuilder,
-                bitmaps: bitmaps,
-                hiddenCharacterIds: _controller.hiddenCharacterIds,
-                overridePositionsPx: _controller.overridePositionsPx,
-                repaint: _controller.repaint,
+            // SWFの図形はステージ矩形の外まで置かれることがあり、CustomPaintは
+            // 既定でクリップしないため、Viewより広い親（横長ウィンドウ等）に
+            // 描画が漏れる。ステージ枠でクリップして枠外には何も描かない
+            child: ClipRect(
+              child: CustomPaint(
+                painter: StagePainter(
+                  stage: stage,
+                  pathBuilder: _pathBuilder,
+                  bitmaps: bitmaps,
+                  hiddenCharacterIds: _controller.hiddenCharacterIds,
+                  overridePositionsPx: _controller.overridePositionsPx,
+                  repaint: _controller.repaint,
+                ),
+                child: const SizedBox.expand(),
               ),
-              child: const SizedBox.expand(),
             ),
           );
         },

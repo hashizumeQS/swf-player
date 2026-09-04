@@ -69,6 +69,26 @@ void main() {
     );
   });
 
+  testWidgets('ステージ描画はViewの枠でクリップされる（枠外にはみ出さない）', (tester) async {
+    // SWFの図形はステージ矩形の外まで置かれることがあり、CustomPaintは既定で
+    // クリップしないため、Viewより広い親（横長ウィンドウ等）に描画が漏れていた
+    final controller = SwfPlayerController();
+    addTearDown(controller.dispose);
+    await tester.runAsync(() => controller.load(buildVariableSwf()));
+    await tester.pumpWidget(wrap(SwfPlayerView(controller: controller)));
+
+    final clip = find.descendant(
+      of: find.byType(SwfPlayerView),
+      matching: find.ancestor(
+        of: find.byWidgetPredicate(
+            (w) => w is CustomPaint && w.painter is StagePainter),
+        matching: find.byType(ClipRect),
+      ),
+    );
+    expect(clip, findsOneWidget);
+    expect(tester.getSize(clip), const Size(240, 240));
+  });
+
   testWidgets('ロード失敗時はエラー表示になる', (tester) async {
     final controller = SwfPlayerController();
     addTearDown(controller.dispose);
