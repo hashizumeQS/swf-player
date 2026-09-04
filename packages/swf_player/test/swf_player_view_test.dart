@@ -1,4 +1,7 @@
+import 'dart:ui' show ImageByteFormat;
+
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart' show RenderRepaintBoundary;
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:swf_core/testing.dart';
@@ -20,6 +23,16 @@ Uint8List buildDeferredVariableSwf() {
   final builder = SwfBuilder()
     ..showFrame()
     ..doAction(Asm().pushString('score').pushFloat(42).op(0x1D).build())
+    ..showFrame();
+  return builder.build();
+}
+
+/// ステージ（240x240）より大きい480x480の赤い矩形を原点に置いた1フレームSWF。
+/// 図形の右下半分はステージ矩形の外に出る（枠外描画の検証用）。
+Uint8List buildOversizedShapeSwf() {
+  final builder = SwfBuilder()
+    ..defineShapeRect(1, widthPx: 480, heightPx: 480, fillRgb: 0xFF0000)
+    ..placeObject2(depth: 1, characterId: 1)
     ..showFrame();
   return builder.build();
 }
@@ -87,6 +100,62 @@ void main() {
     );
     expect(clip, findsOneWidget);
     expect(tester.getSize(clip), const Size(240, 240));
+  });
+
+  testWidgets('枠外まで広がる図形を描いても周囲のウィジェットは汚れない（ピクセル検証）',
+      (tester) async {
+    // ClipRect の有無だけでなく、実際に枠外へ描画されないことを画像で確かめる（Codex P2）
+    const viewSide = 240.0;
+    const hostSide = 480.0;
+    const hostColor = Color(0xFFFFFFFF);
+    final controller = SwfPlayerController();
+    addTearDown(controller.dispose);
+    await tester.runAsync(() => controller.load(buildOversizedShapeSwf()));
+
+    final boundaryKey = GlobalKey();
+    await tester.pumpWidget(
+      MaterialApp(
+        home: Align(
+          alignment: Alignment.topLeft,
+          child: RepaintBoundary(
+            key: boundaryKey,
+            child: SizedBox(
+              width: hostSide,
+              height: hostSide,
+              child: ColoredBox(
+                color: hostColor,
+                child: Align(
+                  alignment: Alignment.topLeft,
+                  child: SizedBox(
+                    width: viewSide,
+                    height: viewSide,
+                    child: SwfPlayerView(controller: controller),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+    // 480x480 のホストを 1:1 で画像化する
+    final boundary = boundaryKey.currentContext!.findRenderObject()!
+        as RenderRepaintBoundary;
+    final image = await tester.runAsync(() => boundary.toImage());
+    final bytes = await tester.runAsync(
+        () => image!.toByteData(format: ImageByteFormat.rawRgba));
+    Color pixelAt(int x, int y) {
+      final i = (y * image!.width + x) * 4;
+      return Color.fromARGB(bytes!.getUint8(i + 3), bytes.getUint8(i),
+          bytes.getUint8(i + 1), bytes.getUint8(i + 2));
+    }
+
+    // View の内側は赤で塗られている
+    expect(pixelAt(100, 100), const Color(0xFFFF0000));
+    // View の外側（図形が本来届く範囲）はホストの白のまま
+    expect(pixelAt(400, 400), hostColor);
+    expect(pixelAt(400, 100), hostColor);
+    expect(pixelAt(100, 400), hostColor);
   });
 
   testWidgets('ロード失敗時はエラー表示になる', (tester) async {
