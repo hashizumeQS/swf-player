@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.2
+
+- `SwfPlayerView`: clip the stage rendering to the widget bounds. Shapes placed
+  outside the SWF stage rectangle no longer paint over surrounding widgets
+  (visible when the view sits inside a wider parent, e.g. a desktop browser
+  window).
+
 ## 0.1.1
 
 - Documentation: expanded README (screenshot, input/advanced-hooks guides,
